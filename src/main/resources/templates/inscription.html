@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: titre('Inscription')}"/>
+<body>
+<nav th:replace="~{fragments :: navigation}"/>
+<h1>Inscription</h1>
+
+<form method="post" th:action="@{/inscription}" class="formulaire">
+    <label>Email
+        <input type="email" name="email" required maxlength="200"/>
+    </label>
+    <label>Pseudo
+        <input type="text" name="pseudo" required maxlength="100"/>
+    </label>
+    <label>Mot de passe (8 caractères minimum)
+        <input type="password" name="motDePasse" minlength="8" required maxlength="100"/>
+    </label>
+    <button type="submit">S'inscrire</button>
+</form>
+<p class="erreur" th:if="${param.erreur != null}">Cet email est déjà utilisé.</p>
+</body>
+</html>

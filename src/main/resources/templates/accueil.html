@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: titre('Annonces')}"/>
+<body>
+<nav th:replace="~{fragments :: navigation}"/>
+<h1>Annonces à donner</h1>
+
+<form method="get" th:action="@{/}" class="recherche">
+    <input type="text" name="zone" placeholder="Zone géographique"/>
+    <input type="text" name="motCle" placeholder="Mot-clé"/>
+    <select name="etat">
+        <option value="">-- état --</option>
+        <option th:each="e : ${etats}" th:value="${e}" th:text="${e}"/>
+    </select>
+    <select name="mode">
+        <option value="">-- livraison --</option>
+        <option th:each="m : ${modes}" th:value="${m}" th:text="${m}"/>
+    </select>
+    <button type="submit">Rechercher</button>
+</form>
+
+<ul class="annonces">
+    <li th:each="a : ${annonces}">
+        <a th:href="@{'/annonce/' + ${a.id}}"><strong th:text="${a.titre}">titre</strong></a>
+        — <span th:text="${a.etat}">état</span>
+        — <span th:text="${a.zoneGeographique}">zone</span>
+        — <span th:text="${a.donneur}">donneur</span>
+    </li>
+</ul>
+<p th:if="${#lists.isEmpty(annonces)}">Aucune annonce ne correspond à la recherche.</p>
+</body>
+</html>

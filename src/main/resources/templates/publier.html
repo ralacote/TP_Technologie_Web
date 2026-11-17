@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: titre('Publier une annonce')}"/>
+<body>
+<nav th:replace="~{fragments :: navigation}"/>
+<h1>Publier une annonce</h1>
+
+<form method="post" th:action="@{/publier}" class="formulaire">
+    <label>Titre
+        <input type="text" name="titre" required maxlength="200"/>
+    </label>
+    <label>Description
+        <textarea name="description" rows="5" cols="60" required maxlength="2000"></textarea>
+    </label>
+    <label>État de l'objet
+        <select name="etat" required>
+            <option th:each="e : ${etats}" th:value="${e}" th:text="${e}"/>
+        </select>
+    </label>
+    <label>Mode de livraison
+        <select name="modeLivraison" required>
+            <option th:each="m : ${modes}" th:value="${m}" th:text="${m}"/>
+        </select>
+    </label>
+    <label>Zone géographique
+        <input type="text" name="zoneGeographique" maxlength="200"/>
+    </label>
+    <label>Mots-clés (séparés par des virgules)
+        <input type="text" name="motCles"/>
+    </label>
+    <button type="submit">Publier</button>
+</form>
+</body>
+</html>

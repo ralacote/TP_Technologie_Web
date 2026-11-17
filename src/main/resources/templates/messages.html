@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: titre('Mes messages')}"/>
+<body>
+<nav th:replace="~{fragments :: navigation}"/>
+<h1>Messages reçus</h1>
+
+<ul class="messages">
+    <li th:each="m : ${recus}">
+        <strong th:text="${m.expediteur}">expéditeur</strong>
+        — <span th:text="${m.contenu}">contenu</span>
+        — <em th:text="${m.lu} ? 'lu' : 'non lu'">lu</em>
+        (annonce : <a th:href="@{'/annonce/' + ${m.annonce.id}}" th:text="${m.annonce.titre}">annonce</a>)
+    </li>
+</ul>
+<p th:if="${#lists.isEmpty(recus)}">Aucun message reçu.</p>
+
+<h1>Messages envoyés</h1>
+
+<ul class="messages">
+    <li th:each="m : ${envoyes}">
+        à <strong th:text="${m.destinataire}">destinataire</strong>
+        — <span th:text="${m.contenu}">contenu</span>
+        (annonce : <a th:href="@{'/annonce/' + ${m.annonce.id}}" th:text="${m.annonce.titre}">annonce</a>)
+    </li>
+</ul>
+<p th:if="${#lists.isEmpty(envoyes)}">Aucun message envoyé.</p>
+</body>
+</html>

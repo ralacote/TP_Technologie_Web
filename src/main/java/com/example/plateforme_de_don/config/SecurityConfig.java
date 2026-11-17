@@ -33,10 +33,15 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .httpBasic(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
-                        // inscription et consultation sont publiques
-                        .requestMatchers(HttpMethod.POST, "/utilisateurs").permitAll()
+                        // inscription (API et interface web) et consultation sont publiques
+                        .requestMatchers(HttpMethod.POST, "/utilisateurs", "/inscription")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/", "/annonce/**",
+                                "/inscription").permitAll()
                         .requestMatchers(HttpMethod.GET, "/annonces", "/annonces/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/utilisateurs/**").permitAll()
+                        // ressources statiques de l'interface web
+                        .requestMatchers("/css/**", "/favicon.ico").permitAll()
                         // toute écriture exige un utilisateur authentifié
                         .anyRequest().authenticated());
         return http.build();

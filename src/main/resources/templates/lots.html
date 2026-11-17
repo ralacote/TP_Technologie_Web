@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: titre('Mes lots')}"/>
+<body>
+<nav th:replace="~{fragments :: navigation}"/>
+<h1>Mes lots</h1>
+
+<div th:each="lot : ${lots}" class="lot">
+    <h2 th:text="${lot.nom}">nom du lot</h2>
+    <p th:text="'Créé le ' + ${lot.dateCreation}">date</p>
+    <ul>
+        <li th:each="a : ${lot.annonces}">
+            <a th:href="@{'/annonce/' + ${a.id}}" th:text="${a.titre}">titre</a>
+        </li>
+    </ul>
+</div>
+<p th:if="${#lists.isEmpty(lots)}">Aucun lot pour le moment.</p>
+</body>
+</html>

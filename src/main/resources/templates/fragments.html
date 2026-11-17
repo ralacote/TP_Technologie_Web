@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="titre(titrePage)">
+    <meta charset="UTF-8"/>
+    <title th:text="${titrePage} + ' - Plateforme de dons'">Plateforme de dons</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+<nav th:fragment="navigation">
+    <a th:href="@{/}">Annonces</a>
+    <a th:href="@{/publier}">Publier</a>
+    <a th:href="@{/mes-favoris}">Mes favoris</a>
+    <a th:href="@{/mes-lots}">Mes lots</a>
+    <a th:href="@{/mes-messages}">Mes messages</a>
+    <a th:href="@{/inscription}">Inscription</a>
+</nav>
+</body>
+</html>

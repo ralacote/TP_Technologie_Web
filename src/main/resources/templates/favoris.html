@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: titre('Mes favoris')}"/>
+<body>
+<nav th:replace="~{fragments :: navigation}"/>
+<h1>Mes favoris</h1>
+
+<ul class="annonces">
+    <li th:each="a : ${annonces}">
+        <a th:href="@{'/annonce/' + ${a.id}}"><strong th:text="${a.titre}">titre</strong></a>
+        — <span th:text="${a.etat}">état</span>
+        — <span th:text="${a.zoneGeographique}">zone</span>
+    </li>
+</ul>
+<p th:if="${#lists.isEmpty(annonces)}">Aucun favori pour le moment.</p>
+</body>
+</html>

@@ -1,0 +1,57 @@
+body {
+    font-family: sans-serif;
+    margin: 2rem auto;
+    max-width: 60rem;
+    padding: 0 1rem;
+}
+
+nav {
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+nav a {
+    margin-right: 1rem;
+    text-decoration: none;
+    color: #0645ad;
+}
+
+nav a:hover {
+    text-decoration: underline;
+}
+
+.recherche input, .recherche select, .recherche button {
+    margin-right: 0.5rem;
+    padding: 0.25rem;
+}
+
+.annonces li, .messages li {
+    margin-bottom: 0.5rem;
+}
+
+.details li {
+    margin-bottom: 0.25rem;
+}
+
+.formulaire label {
+    display: block;
+    margin-bottom: 0.75rem;
+}
+
+.formulaire input, .formulaire select, .formulaire textarea {
+    display: block;
+    margin-top: 0.25rem;
+    padding: 0.25rem;
+}
+
+.lot {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 0.5rem 1rem;
+    margin-bottom: 1rem;
+}
+
+.erreur {
+    color: #b00020;
+}

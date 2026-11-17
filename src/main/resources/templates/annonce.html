@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: titre(${annonce.titre})}"/>
+<body>
+<nav th:replace="~{fragments :: navigation}"/>
+<h1 th:text="${annonce.titre}">titre</h1>
+<p th:text="${annonce.description}">description</p>
+
+<ul class="details">
+    <li>État : <span th:text="${annonce.etat}">état</span></li>
+    <li>Zone géographique : <span th:text="${annonce.zoneGeographique}">zone</span></li>
+    <li>Livraison : <span th:text="${annonce.modeLivraison}">mode</span></li>
+    <li>Donneur : <span th:text="${annonce.donneur}">donneur</span></li>
+    <li>Mots-clés :
+        <span th:each="mc, stat : ${annonce.motCles}">
+            <span th:text="${mc}">mot-clé</span><span th:unless="${stat.last}">, </span>
+        </span>
+    </li>
+</ul>
+
+<form method="post" th:action="@{'/annonce/' + ${annonce.id} + '/favori'}">
+    <button type="submit">Mettre en favori</button>
+</form>
+
+<h2>Contacter le donneur</h2>
+<form method="post" th:action="@{'/annonce/' + ${annonce.id} + '/message'}">
+    <textarea name="contenu" rows="4" cols="60" placeholder="Votre message"></textarea>
+    <button type="submit">Envoyer le message</button>
+</form>
+</body>
+</html>
