@@ -20,6 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,34 +43,44 @@ class AnnonceControllerTest {
     @Autowired
     AnnonceService annonces;
 
-    private Utilisateur donneur() {
+    @Autowired
+    PasswordEncoder encodeurMotsDePasse;
+
+    private Utilisateur creeUtilisateur(String email, String pseudo) {
         Utilisateur utilisateur = new Utilisateur();
-        utilisateur.setEmail("alice@test.fr");
-        utilisateur.setMotDePasse("secret");
-        utilisateur.setPseudo("alice");
+        utilisateur.setEmail(email);
+        utilisateur.setMotDePasse(encodeurMotsDePasse.encode("motdepasse"));
+        utilisateur.setPseudo(pseudo);
         return utilisateurs.save(utilisateur);
     }
 
-    private AnnonceInput inputValide(Utilisateur donneur) {
+    private Utilisateur donneur() {
+        return creeUtilisateur("alice@test.fr", "alice");
+    }
+
+    private AnnonceInput inputValide() {
         return new AnnonceInput("Vélo de ville", "Vélo en bon état, peu servi",
                 EtatObjet.BON_ETAT, ModeLivraison.LES_DEUX, "Clermont-Ferrand",
-                Set.of("vélo", "sport"), donneur.getId());
+                Set.of("vélo", "sport"));
     }
 
     private Long creeAnnonce(Utilisateur donneur, String titre, String description,
             EtatObjet etat, ModeLivraison mode, String zone, Set<String> motCles) {
-        return annonces.cree(new AnnonceInput(titre, description, etat, mode, zone, motCles,
-                donneur.getId())).getId();
+        return annonces.cree(donneur, new AnnonceInput(titre, description, etat, mode, zone,
+                motCles)).getId();
     }
 
     @Test
     void cycleDeVieCompletDUneAnnonce() throws Exception {
-        Utilisateur donneur = donneur();
+        // alice existe dans la base pour l'authentification HTTP Basic
+        donneur();
+        var alice = SecurityMockMvcRequestPostProcessors.httpBasic("alice@test.fr", "motdepasse");
 
         // POST -> 201 + Location + liens HAL
         MvcResult creation = mockMvc.perform(post("/annonces")
+                        .with(alice)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(inputValide(donneur))))
+                        .content(objectMapper.writeValueAsString(inputValide())))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.titre").value("Vélo de ville"))
                 .andExpect(jsonPath("$.donneur").value("alice"))
@@ -92,8 +104,9 @@ class AnnonceControllerTest {
         // PUT -> 200 avec modifications
         AnnonceInput modifiee = new AnnonceInput("Vélo de ville électrique", "Assistant ajouté",
                 EtatObjet.TRES_BON_ETAT, ModeLivraison.MAIN_PROPRE, "Clermont-Ferrand",
-                Set.of("vélo"), donneur.getId());
+                Set.of("vélo"));
         mockMvc.perform(put("/annonces/{id}", id)
+                        .with(alice)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(modifiee)))
                 .andExpect(status().isOk())
@@ -102,17 +115,19 @@ class AnnonceControllerTest {
                 .andExpect(jsonPath("$.motCles.length()").value(1));
 
         // DELETE -> 204 puis GET -> 404
-        mockMvc.perform(delete("/annonces/{id}", id)).andExpect(status().isNoContent());
+        mockMvc.perform(delete("/annonces/{id}", id).with(alice)).andExpect(status().isNoContent());
         mockMvc.perform(get("/annonces/{id}", id)).andExpect(status().isNotFound());
     }
 
     @Test
     void donneesInvalidesRenvoientUnProbleme400() throws Exception {
-        Utilisateur donneur = donneur();
+        donneur();
+        var alice = SecurityMockMvcRequestPostProcessors.httpBasic("alice@test.fr", "motdepasse");
         AnnonceInput invalide = new AnnonceInput("  ", "description", EtatObjet.BON_ETAT,
-                ModeLivraison.ENVOI, null, null, donneur.getId());
+                ModeLivraison.ENVOI, null, null);
 
         mockMvc.perform(post("/annonces")
+                        .with(alice)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalide)))
                 .andExpect(status().isBadRequest())
@@ -128,15 +143,52 @@ class AnnonceControllerTest {
     }
 
     @Test
-    void donneurInconnuRenvoie404ALaCreation() throws Exception {
-        AnnonceInput sansDonneur = new AnnonceInput("Table", "Table basse", EtatObjet.SATISFAISANT,
-                ModeLivraison.MAIN_PROPRE, "Lyon", null, 9999L);
-
+    void ecritureSansAuthentificationRenvoie401() throws Exception {
+        donneur();
         mockMvc.perform(post("/annonces")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(sansDonneur)))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.detail").value("Utilisateur 9999 introuvable"));
+                        .content(objectMapper.writeValueAsString(inputValide())))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void mauvaisMotDePasseRenvoie401() throws Exception {
+        donneur();
+        var alice = SecurityMockMvcRequestPostProcessors.httpBasic("alice@test.fr", "mauvais");
+        mockMvc.perform(post("/annonces")
+                        .with(alice)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(inputValide())))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void modificationParUnNonProprietaireRenvoie403() throws Exception {
+        Utilisateur alice = donneur();
+        creeUtilisateur("bob@test.fr", "bob");
+        var bob = SecurityMockMvcRequestPostProcessors.httpBasic("bob@test.fr", "motdepasse");
+
+        Long id = annonces.cree(alice, inputValide()).getId();
+
+        // bob tente de modifier l'annonce d'alice
+        AnnonceInput modifiee = new AnnonceInput("Annonce piratée", "Ne devrait pas passer",
+                EtatObjet.NEUF, ModeLivraison.ENVOI, "Paris", null);
+        mockMvc.perform(put("/annonces/{id}", id)
+                        .with(bob)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(modifiee)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.detail")
+                        .value("Seul le donneur de l'annonce peut effectuer cette opération"));
+
+        // bob tente de supprimer l'annonce d'alice
+        mockMvc.perform(delete("/annonces/{id}", id).with(bob))
+                .andExpect(status().isForbidden());
+
+        // l'annonce est intacte
+        mockMvc.perform(get("/annonces/{id}", id))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.titre").value("Vélo de ville"));
     }
 
     @Test

@@ -9,7 +9,6 @@ import com.example.plateforme_de_don.model.Utilisateur;
 import com.example.plateforme_de_don.repository.AnnonceRepository;
 import com.example.plateforme_de_don.repository.AnnonceSpecifications;
 import com.example.plateforme_de_don.repository.MotCleRepository;
-import com.example.plateforme_de_don.repository.UtilisateurRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -25,13 +24,10 @@ import org.springframework.util.StringUtils;
 public class AnnonceService {
 
     private final AnnonceRepository annonces;
-    private final UtilisateurRepository utilisateurs;
     private final MotCleRepository motCles;
 
-    public AnnonceService(AnnonceRepository annonces, UtilisateurRepository utilisateurs,
-            MotCleRepository motCles) {
+    public AnnonceService(AnnonceRepository annonces, MotCleRepository motCles) {
         this.annonces = annonces;
-        this.utilisateurs = utilisateurs;
         this.motCles = motCles;
     }
 
@@ -69,24 +65,32 @@ public class AnnonceService {
                 .orElseThrow(() -> new NotFoundException("Annonce " + id + " introuvable"));
     }
 
-    public Annonce cree(AnnonceInput input) {
-        Utilisateur donneur = utilisateurs.findById(input.donneurId())
-                .orElseThrow(() -> new NotFoundException(
-                        "Utilisateur " + input.donneurId() + " introuvable"));
+    public Annonce cree(Utilisateur donneur, AnnonceInput input) {
         Annonce annonce = new Annonce();
         applique(annonce, input);
         annonce.setDonneur(donneur);
         return annonces.save(annonce);
     }
 
-    public Annonce modifie(Long id, AnnonceInput input) {
+    public Annonce modifie(Long id, Utilisateur utilisateur, AnnonceInput input) {
         Annonce annonce = parId(id);
+        verifieProprietaire(annonce, utilisateur);
         applique(annonce, input);
         return annonces.save(annonce);
     }
 
-    public void supprime(Long id) {
-        annonces.delete(parId(id));
+    public void supprime(Long id, Utilisateur utilisateur) {
+        Annonce annonce = parId(id);
+        verifieProprietaire(annonce, utilisateur);
+        annonces.delete(annonce);
+    }
+
+    /** Seul le donneur peut modifier ou supprimer son annonce. */
+    private void verifieProprietaire(Annonce annonce, Utilisateur utilisateur) {
+        if (!annonce.getDonneur().getId().equals(utilisateur.getId())) {
+            throw new NonProprietaireException(
+                    "Seul le donneur de l'annonce peut effectuer cette opération");
+        }
     }
 
     private void applique(Annonce annonce, AnnonceInput input) {

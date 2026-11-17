@@ -9,6 +9,7 @@ import java.util.Set;
 
 /**
  * Données d'entrée pour la création ou la modification d'une annonce.
+ * Le donneur est l'utilisateur authentifié, jamais transmis par le client.
  */
 public record AnnonceInput(
         @NotBlank @Size(max = 200) String titre,
@@ -16,7 +17,5 @@ public record AnnonceInput(
         @NotNull EtatObjet etat,
         @NotNull ModeLivraison modeLivraison,
         String zoneGeographique,
-        Set<String> motCles,
-        // Temporaire : sera remplacé par l'utilisateur authentifié à l'étape sécurité
-        Long donneurId) {
+        Set<String> motCles) {
 }
