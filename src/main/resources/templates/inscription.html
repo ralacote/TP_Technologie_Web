@@ -17,6 +17,8 @@
     </label>
     <button type="submit">S'inscrire</button>
 </form>
-<p class="erreur" th:if="${param.erreur != null}">Cet email est déjà utilisé.</p>
+<p class="erreur" th:if="${param.erreur == 'email'}">Cet email est déjà utilisé.</p>
+<p class="erreur" th:if="${param.erreur == 'pseudo'}">Ce pseudo est déjà utilisé.</p>
+<p class="note">Une fois inscrit, l'identifiant de connexion est votre email (ou votre pseudo).</p>
 </body>
 </html>

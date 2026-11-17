@@ -4,6 +4,7 @@ import com.example.plateforme_de_don.service.EmailDejaUtiliseException;
 import com.example.plateforme_de_don.service.FavoriDejaExistantException;
 import com.example.plateforme_de_don.service.NonProprietaireException;
 import com.example.plateforme_de_don.service.NotFoundException;
+import com.example.plateforme_de_don.service.PseudoDejaUtiliseException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -30,6 +31,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(FavoriDejaExistantException.class)
     ProblemDetail favoriDejaExistant(FavoriDejaExistantException exception) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, exception.getMessage());
+    }
+
+    @ExceptionHandler(PseudoDejaUtiliseException.class)
+    ProblemDetail pseudoDejaUtilise(PseudoDejaUtiliseException exception) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, exception.getMessage());
     }
 

@@ -55,3 +55,8 @@ nav a:hover {
 .erreur {
     color: #b00020;
 }
+
+.note {
+    color: #555;
+    font-size: 0.9rem;
+}

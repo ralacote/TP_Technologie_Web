@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * Charge les utilisateurs depuis la base pour l'authentification HTTP Basic
- * (identifiant de connexion = email).
+ * (identifiant de connexion = email ou pseudo).
  */
 @Service
 public class UtilisateurDetailsService implements UserDetailsService {
@@ -22,10 +22,11 @@ public class UtilisateurDetailsService implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Utilisateur utilisateur = utilisateurs.findByEmail(email)
+    public UserDetails loadUserByUsername(String identifiant) throws UsernameNotFoundException {
+        Utilisateur utilisateur = utilisateurs.findByEmail(identifiant)
+                .or(() -> utilisateurs.findByPseudo(identifiant))
                 .orElseThrow(() -> new UsernameNotFoundException(
-                        "Utilisateur " + email + " introuvable"));
+                        "Utilisateur " + identifiant + " introuvable"));
         return User.withUsername(utilisateur.getEmail())
                 .password(utilisateur.getMotDePasse())
                 .roles("UTILISATEUR")

@@ -25,6 +25,9 @@ public class UtilisateurService {
         if (utilisateurs.existsByEmail(input.email())) {
             throw new EmailDejaUtiliseException("Email déjà utilisé : " + input.email());
         }
+        if (utilisateurs.existsByPseudo(input.pseudo())) {
+            throw new PseudoDejaUtiliseException("Pseudo déjà utilisé : " + input.pseudo());
+        }
         Utilisateur utilisateur = new Utilisateur();
         utilisateur.setEmail(input.email());
         utilisateur.setPseudo(input.pseudo());

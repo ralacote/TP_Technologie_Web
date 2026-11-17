@@ -151,4 +151,38 @@ class PageControllerTest {
         mockMvc.perform(get("/publier"))
                 .andExpect(status().isUnauthorized());
     }
+
+    @Test
+    void identifiantsInvalidesNinterdisentPasLesPagesPubliques() throws Exception {
+        Utilisateur alice = creeUtilisateur("cache@test.fr", "cache");
+        creeAnnonce(alice, "Commode ancienne");
+
+        // le navigateur renvoie des identifiants invalides (restés en cache
+        // après un changement de compte) : les pages publiques restent
+        // consultables, sinon la boîte de connexion s'affiche en boucle
+        mockMvc.perform(get("/").with(httpBasic("cache@test.fr", "mauvaismdp")))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/inscription").with(httpBasic("cache@test.fr", "mauvaismdp")))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/annonce/{id}", 9999).with(httpBasic("cache@test.fr", "mauvaismdp")))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void navigationMasqueePourVisiteurNonConnecte() throws Exception {
+        // visiteur anonyme : liens réservés masqués, inscription proposée
+        mockMvc.perform(get("/"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("/publier"))))
+                .andExpect(content().string(org.hamcrest.Matchers
+                        .containsString("/inscription")));
+
+        // utilisateur connecté : les liens de l'espace personnel apparaissent
+        creeUtilisateur("nav@test.fr", "nav");
+        mockMvc.perform(get("/").with(httpBasic("nav@test.fr", "motdepasse")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers
+                        .containsString("/publier")));
+    }
 }

@@ -78,6 +78,23 @@ class UtilisateurControllerTest {
     }
 
     @Test
+    void pseudoEnDoubleRenvoie409() throws Exception {
+        UtilisateurInput premier = new UtilisateurInput("frank@test.fr", "frank", "motdepasse");
+        mockMvc.perform(post("/utilisateurs")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(premier)))
+                .andExpect(status().isCreated());
+
+        // même pseudo, autre email -> conflit
+        UtilisateurInput autre = new UtilisateurInput("autre@test.fr", "frank", "motdepasse");
+        mockMvc.perform(post("/utilisateurs")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(autre)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.detail").value("Pseudo déjà utilisé : frank"));
+    }
+
+    @Test
     void donneesInvalidesRenvoientUnProbleme400() throws Exception {
         UtilisateurInput invalide = new UtilisateurInput("pas-un-email", "bob", "court");
 
@@ -126,13 +143,25 @@ class UtilisateurControllerTest {
                         .with(httpBasic("eve@test.fr", "motdepasse")))
                 .andExpect(status().isOk());
 
-        // mauvais mot de passe -> 401
+        // le pseudo est aussi accepté comme identifiant de connexion
         mockMvc.perform(get("/utilisateurs/{id}", id)
+                        .with(httpBasic("eve", "motdepasse")))
+                .andExpect(status().isOk());
+
+        // identifiants invalides sur une page publique : la consultation reste
+        // accessible en anonyme (sinon la boîte de connexion du navigateur
+        // s'afficherait en boucle dès l'ouverture du site)
+        mockMvc.perform(get("/utilisateurs/{id}", id)
+                        .with(httpBasic("eve@test.fr", "mauvais")))
+                .andExpect(status().isOk());
+
+        // identifiants invalides sur une écriture protégée -> 401
+        mockMvc.perform(post("/annonces")
                         .with(httpBasic("eve@test.fr", "mauvais")))
                 .andExpect(status().isUnauthorized());
 
-        // utilisateur inconnu -> 401
-        mockMvc.perform(get("/utilisateurs/{id}", id)
+        // utilisateur inconnu sur une écriture protégée -> 401
+        mockMvc.perform(post("/annonces")
                         .with(httpBasic("inconnu@test.fr", "motdepasse")))
                 .andExpect(status().isUnauthorized());
     }

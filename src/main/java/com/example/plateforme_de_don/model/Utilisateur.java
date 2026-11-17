@@ -26,7 +26,7 @@ public class Utilisateur {
     @Column(nullable = false)
     private String motDePasse;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String pseudo;
 
     @Column(nullable = false, updatable = false)

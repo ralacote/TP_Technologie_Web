@@ -15,6 +15,7 @@ import com.example.plateforme_de_don.service.FavoriDejaExistantException;
 import com.example.plateforme_de_don.service.FavoriService;
 import com.example.plateforme_de_don.service.LotService;
 import com.example.plateforme_de_don.service.MessageService;
+import com.example.plateforme_de_don.service.PseudoDejaUtiliseException;
 import com.example.plateforme_de_don.service.UtilisateurService;
 import java.util.Arrays;
 import java.util.List;
@@ -26,6 +27,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -54,6 +56,12 @@ public class PageController {
         this.lots = lots;
         this.messages = messages;
         this.representation = representation;
+    }
+
+    /** Visiteur connecté ? (affiché dans la navigation des pages) */
+    @ModelAttribute("authentifie")
+    public boolean authentifie(@AuthenticationPrincipal UserDetails utilisateurConnecte) {
+        return utilisateurConnecte != null;
     }
 
     /** Accueil : liste des annonces avec filtres de recherche (page publique). */
@@ -145,6 +153,8 @@ public class PageController {
             utilisateurs.cree(new UtilisateurInput(email, pseudo, motDePasse));
         } catch (EmailDejaUtiliseException e) {
             return "redirect:/inscription?erreur=email";
+        } catch (PseudoDejaUtiliseException e) {
+            return "redirect:/inscription?erreur=pseudo";
         }
         return "redirect:/";
     }
