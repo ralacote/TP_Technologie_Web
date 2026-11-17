@@ -13,6 +13,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import java.util.Locale;
 
 /**
  * Recherche sauvegardée par un utilisateur enregistré, avec ses critères de
@@ -48,6 +49,39 @@ public class RechercheSauvegardee {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "proprietaire_id")
     private Utilisateur proprietaire;
+
+    /** Correspond aux critères de la recherche sauvegardée ? */
+    public boolean correspondA(Annonce annonce) {
+        if (zoneGeographique != null && !zoneGeographique.isBlank()) {
+            if (annonce.getZoneGeographique() == null
+                    || !annonce.getZoneGeographique().toLowerCase(Locale.ROOT)
+                            .contains(zoneGeographique.trim().toLowerCase(Locale.ROOT))) {
+                return false;
+            }
+        }
+        if (motCle != null && !motCle.isBlank()) {
+            String cible = motCle.trim().toLowerCase(Locale.ROOT);
+            if (annonce.getMotCles().stream().noneMatch(
+                    motCleAnnonce -> motCleAnnonce.getLibelle().equals(cible))) {
+                return false;
+            }
+        }
+        if (etat != null && annonce.getEtat() != etat) {
+            return false;
+        }
+        if (modeLivraison != null && !livrableSelon(annonce.getModeLivraison())) {
+            return false;
+        }
+        return true;
+    }
+
+    /** « main propre » et « envoi » incluent aussi les annonces acceptant les deux. */
+    private boolean livrableSelon(ModeLivraison modeDeLAnnonce) {
+        if (modeLivraison == ModeLivraison.LES_DEUX) {
+            return modeDeLAnnonce == ModeLivraison.LES_DEUX;
+        }
+        return modeDeLAnnonce == modeLivraison || modeDeLAnnonce == ModeLivraison.LES_DEUX;
+    }
 
     @PrePersist
     void onCreate() {

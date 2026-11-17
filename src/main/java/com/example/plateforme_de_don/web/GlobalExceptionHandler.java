@@ -1,6 +1,7 @@
 package com.example.plateforme_de_don.web;
 
 import com.example.plateforme_de_don.service.EmailDejaUtiliseException;
+import com.example.plateforme_de_don.service.FavoriDejaExistantException;
 import com.example.plateforme_de_don.service.NonProprietaireException;
 import com.example.plateforme_de_don.service.NotFoundException;
 import org.springframework.http.HttpStatus;
@@ -24,6 +25,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(EmailDejaUtiliseException.class)
     ProblemDetail emailDejaUtilise(EmailDejaUtiliseException exception) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, exception.getMessage());
+    }
+
+    @ExceptionHandler(FavoriDejaExistantException.class)
+    ProblemDetail favoriDejaExistant(FavoriDejaExistantException exception) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, exception.getMessage());
     }
 

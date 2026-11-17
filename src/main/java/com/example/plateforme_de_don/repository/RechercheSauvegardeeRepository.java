@@ -2,6 +2,7 @@ package com.example.plateforme_de_don.repository;
 
 import com.example.plateforme_de_don.model.RechercheSauvegardee;
 import java.util.List;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface RechercheSauvegardeeRepository extends JpaRepository<RechercheSauvegardee, Long> {
@@ -9,4 +10,7 @@ public interface RechercheSauvegardeeRepository extends JpaRepository<RechercheS
     List<RechercheSauvegardee> findByProprietaireId(Long proprietaireId);
 
     List<RechercheSauvegardee> findByProprietaireIdAndNotificationsActivesTrue(Long proprietaireId);
+
+    @EntityGraph(attributePaths = "proprietaire")
+    List<RechercheSauvegardee> findByNotificationsActivesTrue();
 }

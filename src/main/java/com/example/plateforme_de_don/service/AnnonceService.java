@@ -25,10 +25,13 @@ public class AnnonceService {
 
     private final AnnonceRepository annonces;
     private final MotCleRepository motCles;
+    private final NotificationService notifications;
 
-    public AnnonceService(AnnonceRepository annonces, MotCleRepository motCles) {
+    public AnnonceService(AnnonceRepository annonces, MotCleRepository motCles,
+            NotificationService notifications) {
         this.annonces = annonces;
         this.motCles = motCles;
+        this.notifications = notifications;
     }
 
     public Page<Annonce> liste(Pageable pageable) {
@@ -69,7 +72,10 @@ public class AnnonceService {
         Annonce annonce = new Annonce();
         applique(annonce, input);
         annonce.setDonneur(donneur);
-        return annonces.save(annonce);
+        Annonce enregistree = annonces.save(annonce);
+        // notifie les recherches sauvegardées correspondantes (aspect désactivable)
+        notifications.notifieNouvelleAnnonce(enregistree);
+        return enregistree;
     }
 
     public Annonce modifie(Long id, Utilisateur utilisateur, AnnonceInput input) {
