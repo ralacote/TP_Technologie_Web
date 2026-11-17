@@ -1,5 +1,6 @@
 package com.example.plateforme_de_don.web;
 
+import com.example.plateforme_de_don.service.EmailDejaUtiliseException;
 import com.example.plateforme_de_don.service.NotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -18,6 +19,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NotFoundException.class)
     ProblemDetail introuvable(NotFoundException exception) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
+    }
+
+    @ExceptionHandler(EmailDejaUtiliseException.class)
+    ProblemDetail emailDejaUtilise(EmailDejaUtiliseException exception) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, exception.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
