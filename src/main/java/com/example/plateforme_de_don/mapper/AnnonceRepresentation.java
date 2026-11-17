@@ -40,7 +40,8 @@ public class AnnonceRepresentation implements RepresentationModelAssembler<Annon
                         WebMvcLinkBuilder.methodOn(AnnonceController.class).detail(annonce.getId()))
                         .withSelfRel(),
                 WebMvcLinkBuilder.linkTo(
-                        WebMvcLinkBuilder.methodOn(AnnonceController.class).liste(null, null))
+                        WebMvcLinkBuilder.methodOn(AnnonceController.class)
+                                .liste(null, null, null, null, null, null, null))
                         .withRel(IanaLinkRelations.COLLECTION)
         };
     }

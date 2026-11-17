@@ -7,6 +7,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /**
  * Traduit les exceptions en réponses Problem Details (RFC 7807).
@@ -33,5 +34,11 @@ public class GlobalExceptionHandler {
     ProblemDetail illisible(HttpMessageNotReadableException exception) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
                 "Corps de requête illisible ou JSON invalide");
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    ProblemDetail parametreInvalide(MethodArgumentTypeMismatchException exception) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
+                "Paramètre invalide : " + exception.getName());
     }
 }
